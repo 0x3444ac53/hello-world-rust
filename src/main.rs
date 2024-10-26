@@ -25,54 +25,72 @@ impl BfInterperter {
         }
     }
 
-    fn move_right(&mut self) {
+    fn move_right(&mut self) -> Option<usize> {
         self.pointer += 1;
         self.ensure_memory();
-        self.i_pointer += 1;
+        return None;
     }
 
-    fn move_left(&mut self) {
+    fn move_left(&mut self) -> Option<usize> {
         if self.pointer > 0 {
             self.pointer -= 1;
         }
-        self.i_pointer += 1;
+        return None;
     }
 
-    fn increment(&mut self) {
+    fn increment(&mut self) -> Option<usize> {
         self.memory[self.pointer] += 1;
-        self.i_pointer += 1;
+        return None;
     }
 
-    fn decrement(&mut self) {
+    fn decrement(&mut self) -> Option<usize> {
         self.memory[self.pointer] -= 1;
-        self.i_pointer += 1;
+        return None;
     }
 
-    fn loop_start(&mut self) {
-        self.stack.push(self.i_pointer);
-        self.i_pointer += 1;
-    }
-
-    fn loop_end(&mut self) {
-        if self.memory[self.pointer] == 0 {
-            self.stack.pop();
-            self.i_pointer += 1;
-        } else if let Some(ip) = self.stack.pop() {
-            self.i_pointer = ip;
-        } else {
-            self.i_pointer = 30000;
+    fn loop_start(&mut self) -> Option<usize> {
+        if self.memory[self.pointer] != 0 {
+            self.stack.push(self.i_pointer);
+            return None;
+        }
+        let mut peek = self.i_pointer;
+        let mut counter = 0;
+        loop {
+            if peek >= self.prog.len() {
+                return Some(peek);
+            };
+            match self.prog[peek] {
+                '[' => counter += 1,
+                ']' => {
+                    if counter == 0 {
+                        return Some(peek);
+                    }
+                    {
+                        counter -= 1
+                    }
+                }
+                _ => {}
+            }
+            if self.prog[peek] == ']' {
+                return Some(peek);
+            };
+            peek += 1;
         }
     }
 
-    fn output(&mut self) {
+    fn loop_end(&mut self) -> Option<usize> {
+        return self.stack.pop();
+    }
+
+    fn output(&mut self) -> Option<usize> {
         let _char = char::from(self.memory[self.pointer]);
         print!("{}", _char);
-        self.i_pointer += 1;
+        return None;
     }
 
     fn step(&mut self) {
         let instr = self.prog[self.i_pointer];
-        match instr {
+        match match instr {
             '>' => self.move_right(),
             '<' => self.move_left(),
             '+' => self.increment(),
@@ -80,7 +98,10 @@ impl BfInterperter {
             '[' => self.loop_start(),
             ']' => self.loop_end(),
             '.' => self.output(),
-            _ => self.i_pointer += 1,
+            _ => None,
+        } {
+            Some(np) => self.i_pointer = np,
+            None => self.i_pointer += 1,
         }
     }
 
