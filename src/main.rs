@@ -62,8 +62,8 @@ impl BfInterperter {
     }
 
     fn output(&mut self) {
-        let _char = char::from_u32(self.memory[self.pointer].into());
-        print!("{:?}", _char);
+        let _char = char::from(self.memory[self.pointer]);
+        print!("{:?}", _char.to_string());
         self.i_pointer += 1;
     }
 
