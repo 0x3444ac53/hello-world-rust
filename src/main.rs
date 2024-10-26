@@ -12,7 +12,7 @@ impl BfInterperter {
             memory: vec![0; 1],
             pointer: 0,
             i_pointer: 0,
-            stack: vec![0; 1],
+            stack: vec![0; 0],
             prog: prog,
         }
     }
@@ -53,6 +53,7 @@ impl BfInterperter {
 
     fn loop_end(&mut self) {
         if self.memory[self.pointer] == 0 {
+            self.stack.pop();
             self.i_pointer += 1;
         } else if let Some(ip) = self.stack.pop() {
             self.i_pointer = ip;
@@ -63,7 +64,7 @@ impl BfInterperter {
 
     fn output(&mut self) {
         let _char = char::from(self.memory[self.pointer]);
-        print!("{:?}", _char.to_string());
+        print!("{}", _char);
         self.i_pointer += 1;
     }
 
@@ -79,10 +80,7 @@ impl BfInterperter {
             '.' => self.output(),
             _ => self.i_pointer += 1,
         }
-        println!(
-            "  instr: {instr}\n    mem: {:?}\npointer: {}\n------------------------",
-            self.memory, self.pointer
-        )
+        println!("{instr} {:?}", self.stack)
     }
 
     fn execute(&mut self) {
@@ -93,11 +91,25 @@ impl BfInterperter {
 }
 
 fn main() {
-    let prog = r#"Hello! and Welcome!
-    Let's start by placing 'A' in the first cell and 'a' in the second
-    that'll make writing messages a little easier
-    >++++++++++[<++++>-]+.
-    "#;
+    let prog = r#"
+    ++++++++++[
+        >+++++++
+        >++++++++++
+        >+++
+        >+
+        <<<<-]
+    >++.
+    >+.
+    +++++++..
+    +++.
+    >++.
+    <<+++++++++++++++.
+    >.
+    +++.
+    ------.
+    --------.
+    >+.
+    >."#;
     let mut bf = BfInterperter::new(prog.chars().filter(|c| "+-><[].".contains(*c)).collect());
     bf.execute();
 }
