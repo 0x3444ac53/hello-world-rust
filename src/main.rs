@@ -1,3 +1,5 @@
+use std::io::{stdin, stdout, Write};
+
 struct BfInterperter {
     memory: Vec<u8>,
     pointer: usize,
@@ -80,7 +82,6 @@ impl BfInterperter {
             '.' => self.output(),
             _ => self.i_pointer += 1,
         }
-        println!("{instr} {:?}", self.stack)
     }
 
     fn execute(&mut self) {
@@ -91,25 +92,14 @@ impl BfInterperter {
 }
 
 fn main() {
-    let prog = r#"
-    ++++++++++[
-        >+++++++
-        >++++++++++
-        >+++
-        >+
-        <<<<-]
-    >++.
-    >+.
-    +++++++..
-    +++.
-    >++.
-    <<+++++++++++++++.
-    >.
-    +++.
-    ------.
-    --------.
-    >+.
-    >."#;
+    let mut prog = String::new();
     let mut bf = BfInterperter::new(prog.chars().filter(|c| "+-><[].".contains(*c)).collect());
-    bf.execute();
+    loop {
+        print!("|~ ");
+        let _ = stdout().flush();
+        stdin().read_line(&mut prog).expect("mi sona ala");
+        bf.prog = prog.chars().filter(|c| "+-><[].".contains(*c)).collect();
+        bf.execute();
+        println!("mem: {:?}", bf.memory)
+    }
 }
